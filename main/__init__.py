@@ -1,0 +1,1 @@
+print("Started scraping Google search...")
