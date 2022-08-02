@@ -1,4 +1,6 @@
-import os 
+import os
+from pickle import TRUE
+from sre_constants import SUCCESS 
 from selenium import webdriver
 import os
 import main.constants as const
@@ -9,7 +11,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
+from selenium.common.exceptions import NoSuchElementException,StaleElementReferenceException
+import time 
 
 
 
@@ -35,22 +38,71 @@ class Scraping(webdriver.Chrome):
             self.quit()
             print("Exiting...")
 
-    
+   
 
     def products_list(self):
         products_list = self.find_elements_by_class_name(
             'BXIkFb'
             )[0].find_elements_by_class_name('i0X6df')
+        
+   
         for div in products_list:
-            product_name = (div.find_element_by_css_selector('div[data-sh-gr="line"]')
+            WebDriverWait(self, 20).until(
+                EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, 'div[data-sh-gr="line"]')
+                )
+            )
+            try:
+                product_name = (div.find_element_by_css_selector('div[data-sh-gr="line"]')   
                 .get_attribute("innerText")
                 .strip())
-            self.product_data.append(product_name)
-        print(self.product_data)
+                self.product_data.append(product_name)
+            except StaleElementReferenceException:
+                WebDriverWait(self, 20).until(
+                EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, 'div[data-sh-gr="line"]')
+                )
+            )
+                product_name = (div.find_element_by_css_selector('div[data-sh-gr="line"]')
+                .get_attribute("innerText")
+                .strip())
+                self.product_data.append(product_name) 
+
+            image = div.find_element_by_css_selector('a[data-what="0"]')
+            image.click()
+            self.about_page()
+                
+            
+            
+        print(f"this is product data : {self.product_data}.There are overall : {len(self.product_data)}")
+
         return products_list    
-        
+
+    def about_page(self):
+            WebDriverWait(self,10).until(EC.presence_of_element_located((By.CLASS_NAME, "_-pq")))
+            link = self.find_element_by_css_selector("div[class='_-pq']>a")
+            link.click()
+
+            
+            price = self.find_element_by_xpath('//*[@id="sh-osd__online-sellers-cont"]/tr/td[3]/span').get_attribute("innerText").strip()
+            print(price)
+            
+            self.back()
+    # def pagination(self):
+    #    while True:
+    #         print(f"Processing page ..")
+    #         try:
+    #             self.products_list()
+    #             next_btn = self.find_element_by_id('pnnext')
+    #             next_btn.click()
+    #         except NoSuchElementException:
+    #             print(f"Exiting. Last page !")
+    #             break
+
+
     def land_first_page(self):
         self.get(const.BASE_URL)
+        
 
 
     def search(self):
