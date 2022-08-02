@@ -1,6 +1,6 @@
-import os 
-from selenium import webdriver
+from main.scraping import Scraping
 
-os.environ['PATH']+= r"D:\selenium-drivers"
-
-driver = webdriver.Chrome()
+with Scraping() as bot:
+    bot.land_first_page()
+    bot.search()   
+    print(len(bot.products_list()))
