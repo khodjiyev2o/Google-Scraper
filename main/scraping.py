@@ -12,8 +12,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import NoSuchElementException,StaleElementReferenceException
+from selenium.common.exceptions import NoSuchElementException,StaleElementReferenceException,TimeoutException
 import time 
+import json
+ 
+ 
 
 
 
@@ -83,18 +86,18 @@ class Scraping(webdriver.Chrome):
                 self.get(link)
             try:
                el = self.find_elements_by_css_selector("div[class='LDQll']>span")[0]
-               self.product_name = el.get_attribute('innerText').strip()
+               self.product_name = el.text
                self.product_data['self.product_name'] = self.product_name
-               self.price = self.find_elements_by_class_name('drzWO')[0].get_attribute("innerText").strip()
+               self.price = self.find_elements_by_class_name('drzWO')[0].text
                print(self.price)
                self.price = self.price.replace(u'\xa0', u' ')
                self.product_data['price'] = self.price
 
-               self.overall_rating = self.find_elements_by_class_name('uYNZm')[0].get_attribute('innerText').strip()
+               self.overall_rating = self.find_elements_by_class_name('uYNZm')[0].text
                self.product_data['overall_rating'] = self.overall_rating
             except  StaleElementReferenceException:
                 WebDriverWait(self,10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="sh-osd__online-sellers-cont"]/tr/td[3]/span')))
-                price = self.find_element_by_xpath('//*[@id="sh-osd__online-sellers-cont"]/tr/td[3]/span').get_attribute("innerText").strip()
+                price = self.find_element_by_xpath('//*[@id="sh-osd__online-sellers-cont"]/tr/td[3]/span').text
                 self.back() 
                 time.sleep(3)
                 
@@ -104,19 +107,25 @@ class Scraping(webdriver.Chrome):
             'sh-rol__reviews-cont'
             ).find_elements_by_class_name('z6XoBf')
         for review in reviews_container:
-            message = review.find_elements_by_class_name('P3O8Ne')[0].get_attribute("innerText").strip()
-            full_review = review.find_elements_by_class_name('g1lvWe')[0].get_attribute("innerText").strip()
+            message = review.find_elements_by_class_name('P3O8Ne')[0].text
+            full_review = review.find_elements_by_class_name('g1lvWe')[0].text
             self.reviews_list.append(full_review)
             self.short_messages.append(message)
         self.product_data['reviews'] = self.reviews_list
         self.product_data['short_messages'] = self.short_messages
-        print(f"this is {self.product_name} data : it costs {self.price} with rating {self.overall_rating}.Here is the customer's opinions about this product: {self.short_messages}.There are overall : {len(self.product_data['reviews'])} reviews")    
-
+        print(f"this is {self.product_name}  : it costs {self.price} with rating {self.overall_rating}")    
+        
+        # Serializing json
+     
+            # Join new_data with file_data inside emp_details
+           
     def allreviews(self):
         while True:
             print(f"Processing all reviews ..")
             try:
                 self.reviews()
+                WebDriverWait(self,10).until(EC.presence_of_element_located((By.CLASS_NAME, 'sh-btn__background')))
+                
                 more_btn = self.find_elements_by_class_name('sh-btn__background')[0]
                 more_btn.click()
             except NoSuchElementException:
@@ -125,8 +134,24 @@ class Scraping(webdriver.Chrome):
             except IndexError:
                 print(f"Exiting. Last page !")
                 break
+            except StaleElementReferenceException:
+                print(f"Exiting. Last page !")
+                break
+            except TimeoutException:
+                print(f"Exiting. Last page !")
+                break
 
 
+    def write_json(self):
+        print(f"product name :{self.product_name}")
+        print(f"product price :{self.price}")
+        print(f"short_messages  :{self.short_messages}")
+       
+        # json_dump = json.dumps(self.product_data)
+
+        # with open('data.json','w') as file:
+        #     # First we load existing data into a dict.
+        #    file.write(json_dump)
     # def pagination(self):
     #    while True:
     #         print(f"Processing page ..")
@@ -156,4 +181,8 @@ class Scraping(webdriver.Chrome):
         shopping_menu.click()
         #time.sleep(3)
         self.url = self.current_url
+        # function to add to JSON
     
+        
+    
+   
