@@ -125,7 +125,7 @@ class Scraping(webdriver.Chrome):
             try:
                 self.reviews()
                 WebDriverWait(self,10).until(EC.presence_of_element_located((By.CLASS_NAME, 'sh-btn__background')))
-                
+                WebDriverWait(self, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'sh-btn__background')))
                 more_btn = self.find_elements_by_class_name('sh-btn__background')[0]
                 more_btn.click()
             except NoSuchElementException:
