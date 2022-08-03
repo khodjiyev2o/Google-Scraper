@@ -1,6 +1,8 @@
 # Google-Scraper
 Upwork freelance-job. Automated Bot to scraper all the parfumes and its reviews from Google.
+
 Take following steps , to get started :
+
 #1  Clone this repository : git clone https://github.com/khodjiyev2o/Google-Scraper
 
 #2 Create virtual environment on your local computer : python -m venv venv 
