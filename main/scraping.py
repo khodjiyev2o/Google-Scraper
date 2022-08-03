@@ -53,115 +53,114 @@ class Scraping(webdriver.Chrome):
     def products_list(self):
         products_list = self.find_elements_by_class_name(
             'BXIkFb'
-            )[0].find_elements_by_class_name('i0X6df')[0]
-        
-        #for div in products_list:
-         #   try:
-        image = products_list.find_element_by_css_selector('a[data-what="0"]')
-        image.click()
-        self.about_page()
-        try:
-            all_reviews_link = self.find_element_by_xpath('/html/body/div[3]/div[2]/div/section[1]/div[2]/div/a')
-            WebDriverWait(self,10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[3]/div[2]/div/section[1]/div[2]/div/a')))
-            all_reviews_link.click()
-            self.allreviews()
+            )[0].find_elements_by_class_name('i0X6df')
+        count = 1
+        for div in products_list:
+            product_name = div.find_elements_by_class_name('Xjkr3b')[0].text
+            image_url = div.find_element_by_css_selector('img[data-frt="0"]').get_attribute("src")
+            product_price = div.find_elements_by_class_name('a8Pemb.OFFNJ')[0].text
+            print("\n")
+            print(f"{count}.{product_name}")
+            print(product_price)
+            print(image_url)
+            count+=1
             
-        except NoSuchElementException:
-            print('review page is not present in this product!')
-            
-    
+
           #  except StaleElementReferenceException:
            #     continue 
-        return products_list    
+        return len(products_list)    
 
-    def about_page(self):
-            WebDriverWait(self,10).until(EC.presence_of_element_located((By.CLASS_NAME, "_-pq")))
-            the_links= self.find_elements_by_css_selector("div[class='_-pq']>a")
-            links = []
-            for link in the_links :
-                link = link.get_attribute("href").strip()
-                links.append(link)
+    # def about_page(self):
+    #         WebDriverWait(self,10).until(EC.presence_of_element_located((By.CLASS_NAME, "_-pq")))
+    #         the_links= self.find_elements_by_css_selector("div[class='_-pq']>a")
+    #         links = []
+    #         for link in the_links :
+    #             link = link.get_attribute("href").strip()
+    #             links.append(link)
 
-            for link in links :
-                self.get(link)
-            try:
-               el = self.find_elements_by_css_selector("div[class='LDQll']>span")[0]
-               self.product_name = el.text
-               self.product_data['self.product_name'] = self.product_name
-               self.price = self.find_elements_by_class_name('drzWO')[0].text
-               print(self.price)
-               self.price = self.price.replace(u'\xa0', u' ')
-               self.product_data['price'] = self.price
+    #         for link in links :
+    #             self.get(link)
+    #         try:
+    #            el = self.find_elements_by_css_selector("div[class='LDQll']>span")[0]
+    #            self.product_name = el.text
+    #            self.product_data['self.product_name'] = self.product_name
+    #            self.price = self.find_elements_by_class_name('drzWO')[0].text
+    #            print(self.price)
+    #            self.price = self.price.replace(u'\xa0', u' ')
+    #            self.product_data['price'] = self.price
 
-               self.overall_rating = self.find_elements_by_class_name('uYNZm')[0].text
-               self.product_data['overall_rating'] = self.overall_rating
-            except  StaleElementReferenceException:
-                WebDriverWait(self,10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="sh-osd__online-sellers-cont"]/tr/td[3]/span')))
-                price = self.find_element_by_xpath('//*[@id="sh-osd__online-sellers-cont"]/tr/td[3]/span').text
-                self.back() 
-                time.sleep(3)
+    #            self.overall_rating = self.find_elements_by_class_name('uYNZm')[0].text
+    #            self.product_data['overall_rating'] = self.overall_rating
+    #         except  StaleElementReferenceException:
+    #             WebDriverWait(self,10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="sh-osd__online-sellers-cont"]/tr/td[3]/span')))
+    #             price = self.find_element_by_xpath('//*[@id="sh-osd__online-sellers-cont"]/tr/td[3]/span').text
+    #             self.back() 
+    #             time.sleep(3)
                 
             
-    def reviews(self):
-        reviews_container = self.find_element_by_id(
-            'sh-rol__reviews-cont'
-            ).find_elements_by_class_name('z6XoBf')
-        for review in reviews_container:
-            message = review.find_elements_by_class_name('P3O8Ne')[0].text
-            full_review = review.find_elements_by_class_name('g1lvWe')[0].text
-            self.reviews_list.append(full_review)
-            self.short_messages.append(message)
-        self.product_data['reviews'] = self.reviews_list
-        self.product_data['short_messages'] = self.short_messages
-        print(f"this is {self.product_name}  : it costs {self.price} with rating {self.overall_rating}")    
+    # def reviews(self):
+    #     reviews_container = self.find_element_by_id(
+    #         'sh-rol__reviews-cont'
+    #         ).find_elements_by_class_name('z6XoBf')
+    #     for review in reviews_container:
+    #         message = review.find_elements_by_class_name('P3O8Ne')[0].text
+    #         full_review = review.find_elements_by_class_name('g1lvWe')[0].text
+    #         self.reviews_list.append(full_review)
+    #         self.short_messages.append(message)
+    #     self.product_data['reviews'] = self.reviews_list
+    #     self.product_data['short_messages'] = self.short_messages
+    #     print(f"this is {self.product_name}  : it costs {self.price} with rating {self.overall_rating}")    
         
-        # Serializing json
+    #     # Serializing json
      
-            # Join new_data with file_data inside emp_details
+    #         # Join new_data with file_data inside emp_details
            
-    def allreviews(self):
-        while True:
-            print(f"Processing all reviews ..")
-            try:
-                self.reviews()
-                WebDriverWait(self,10).until(EC.presence_of_element_located((By.CLASS_NAME, 'sh-btn__background')))
-                WebDriverWait(self, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'sh-btn__background')))
-                more_btn = self.find_elements_by_class_name('sh-btn__background')[0]
-                more_btn.click()
-            except NoSuchElementException:
-                print(f"Exiting. Last page !")
-                break
-            except IndexError:
-                print(f"Exiting. Last page !")
-                break
-            except StaleElementReferenceException:
-                print(f"Exiting. Last page !")
-                break
-            except TimeoutException:
-                print(f"Exiting. Last page !")
-                break
+    # def allreviews(self):
+    #     while True:
+    #         print(f"Processing all reviews ..")
+    #         try:
+    #             self.reviews()
+    #             WebDriverWait(self,10).until(EC.presence_of_element_located((By.CLASS_NAME, 'sh-btn__background')))
+    #             WebDriverWait(self, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'sh-btn__background')))
+    #             more_btn = self.find_elements_by_class_name('sh-btn__background')[0]
+    #             more_btn.click()
+    #         except NoSuchElementException:
+    #             print(f"Exiting. Last page !")
+    #             break
+    #         except IndexError:
+    #             print(f"Exiting. Last page !")
+    #             break
+    #         except StaleElementReferenceException:
+    #             print(f"Exiting. Last page !")
+    #             break
+    #         except TimeoutException:
+    #             print(f"Exiting. Last page !")
+    #             break
 
 
-    def write_json(self):
-        print(f"product name :{self.product_name}")
-        print(f"product price :{self.price}")
-        print(f"short_messages  :{self.short_messages}")
+    # def write_json(self):
+    #     print(f"product name :{self.product_name}")
+    #     print(f"product price :{self.price}")
+    #     print(f"short_messages  :{self.short_messages}")
        
-        # json_dump = json.dumps(self.product_data)
+    #     # json_dump = json.dumps(self.product_data)
 
         # with open('data.json','w') as file:
         #     # First we load existing data into a dict.
         #    file.write(json_dump)
-    # def pagination(self):
-    #    while True:
-    #         print(f"Processing page ..")
-    #         try:
-    #             self.products_list()
-    #             next_btn = self.find_element_by_id('pnnext')
-    #             next_btn.click()
-    #         except NoSuchElementException:
-    #             print(f"Exiting. Last page !")
-    #             break
+
+    def pagination(self):
+       count = 0
+       while True:
+            print(f"Processing page ..")
+            try:
+                count += self.products_list()
+                next_btn = self.find_element_by_id('pnnext')
+                next_btn.click()
+            except NoSuchElementException:
+                print(f"Exiting. Last page !")
+                return count
+                break
 
 
     def land_first_page(self):
