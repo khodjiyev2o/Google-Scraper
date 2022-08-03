@@ -27,7 +27,12 @@ class Scraping(webdriver.Chrome):
         options.add_argument("--disable-extensions")"""
         self.driver_path = driver_path
         self.teardown = teardown
-        self.product_data = []
+        self.product_data = {}
+        self.product_name = ''
+        self.reviews_list = []
+        self.short_messages = []
+        self.overall_rating = ''
+        self.price = ''
         self.url = ''
         os.environ["PATH"] += self.driver_path
         options = webdriver.ChromeOptions()
@@ -52,14 +57,18 @@ class Scraping(webdriver.Chrome):
         image = products_list.find_element_by_css_selector('a[data-what="0"]')
         image.click()
         self.about_page()
+        try:
+            all_reviews_link = self.find_element_by_xpath('/html/body/div[3]/div[2]/div/section[1]/div[2]/div/a')
+            WebDriverWait(self,10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[3]/div[2]/div/section[1]/div[2]/div/a')))
+            all_reviews_link.click()
+            self.allreviews()
+            
+        except NoSuchElementException:
+            print('review page is not present in this product!')
+            
+    
           #  except StaleElementReferenceException:
            #     continue 
-                
-              
-            
-            
-        print(f"this is product data : {self.product_data}.There are overall : {len(self.product_data)}")
-
         return products_list    
 
     def about_page(self):
@@ -73,17 +82,51 @@ class Scraping(webdriver.Chrome):
             for link in links :
                 self.get(link)
             try:
-               price = self.find_element_by_xpath('//*[@id="sh-osd__online-sellers-cont"]/tr/td[3]/span').get_attribute("innerText").strip()
-               print(price)
+               el = self.find_elements_by_css_selector("div[class='LDQll']>span")[0]
+               self.product_name = el.get_attribute('innerText').strip()
+               self.product_data['self.product_name'] = self.product_name
+               self.price = self.find_elements_by_class_name('drzWO')[0].get_attribute("innerText").strip()
+               print(self.price)
+               self.price = self.price.replace(u'\xa0', u' ')
+               self.product_data['price'] = self.price
+
+               self.overall_rating = self.find_elements_by_class_name('uYNZm')[0].get_attribute('innerText').strip()
+               self.product_data['overall_rating'] = self.overall_rating
             except  StaleElementReferenceException:
                 WebDriverWait(self,10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="sh-osd__online-sellers-cont"]/tr/td[3]/span')))
                 price = self.find_element_by_xpath('//*[@id="sh-osd__online-sellers-cont"]/tr/td[3]/span').get_attribute("innerText").strip()
                 self.back() 
                 time.sleep(3)
-                print(price)
                 
             
-            
+    def reviews(self):
+        reviews_container = self.find_element_by_id(
+            'sh-rol__reviews-cont'
+            ).find_elements_by_class_name('z6XoBf')
+        for review in reviews_container:
+            message = review.find_elements_by_class_name('P3O8Ne')[0].get_attribute("innerText").strip()
+            full_review = review.find_elements_by_class_name('g1lvWe')[0].get_attribute("innerText").strip()
+            self.reviews_list.append(full_review)
+            self.short_messages.append(message)
+        self.product_data['reviews'] = self.reviews_list
+        self.product_data['short_messages'] = self.short_messages
+        print(f"this is {self.product_name} data : it costs {self.price} with rating {self.overall_rating}.Here is the customer's opinions about this product: {self.short_messages}.There are overall : {len(self.product_data['reviews'])} reviews")    
+
+    def allreviews(self):
+        while True:
+            print(f"Processing all reviews ..")
+            try:
+                self.reviews()
+                more_btn = self.find_elements_by_class_name('sh-btn__background')[0]
+                more_btn.click()
+            except NoSuchElementException:
+                print(f"Exiting. Last page !")
+                break
+            except IndexError:
+                print(f"Exiting. Last page !")
+                break
+
+
     # def pagination(self):
     #    while True:
     #         print(f"Processing page ..")
